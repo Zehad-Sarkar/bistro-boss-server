@@ -29,9 +29,17 @@ async function run() {
     // const usersCollection = client.db("BistroBoss").collection("users");
     const menuCollection = client.db("BistroBoss").collection("menu");
     const reviewsCollection = client.db("BistroBoss").collection("reviews");
-    // const cartCollection = client.db("BistroBoss").collection("carts");
+    const cartCollection = client.db("BistroBoss").collection("carts");
 
     // database crud operation routes
+
+    //add item to database
+    app.post("/carts", async (req, res) => {
+      const item = req.body;
+      const result = await cartCollection.insertOne(item);
+      res.send(result);
+    });
+
     // get menu data
     app.get("/menu", async (req, res) => {
       const result = await menuCollection.find().toArray();
