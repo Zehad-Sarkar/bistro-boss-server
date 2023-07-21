@@ -40,6 +40,17 @@ async function run() {
       res.send(result);
     });
 
+    //get cart items from database
+    app.get("/carts", async (req, res) => {
+      const email = req.query.email;
+      if (!email) {
+        res.send([]);
+      }
+      const query = { email: email };
+      const result = await cartCollection.find(query).toArray();
+      res.send(result);
+    });
+
     // get menu data
     app.get("/menu", async (req, res) => {
       const result = await menuCollection.find().toArray();
