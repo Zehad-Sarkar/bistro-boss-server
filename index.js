@@ -33,10 +33,21 @@ async function run() {
     const cartCollection = client.db("BistroBoss").collection("carts");
 
     // database crud operation routes
-    
-    //users created api
+
+    //get user related api get user from database
+    app.get("/users", async (req, res) => {
+      const result = await usersCollection.find().toArray();
+      res.send(result);
+    });
+
+    //users created api and google sign user update on database
     app.post("/user", async (req, res) => {
       const user = req.body;
+      const query = { email: user.email };
+      const existing = await usersCollection.findOne(query);
+      if (existing) {
+        return res.send({ message: "user already exist" });
+      }
       const result = await usersCollection.insertOne(user);
       res.send(result);
     });
