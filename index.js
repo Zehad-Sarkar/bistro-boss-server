@@ -12,7 +12,8 @@ app.use(express.json());
 //verify jwt fn
 const verifyJWT = (req, res, next) => {
   const authorization = req.headers.authorization;
-  if (!authorization) {
+  // console.log("authorization", authorization);
+  if (!authorization || !authorization.startsWith("Bearer ")) {
     return res
       .status(401)
       .send({ error: true, message: "unauthorized access" });
@@ -20,8 +21,11 @@ const verifyJWT = (req, res, next) => {
   const token = authorization.split(" ")[1];
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
     if (err) {
-      return res.status(401).send({ error: true, message: "not authorized" });
+      return res
+        .status(401)
+        .send({ error: true, message: "unauthorized access" });
     }
+    console.log("decoded", decoded);
     req.decoded = decoded;
     next();
   });
@@ -112,6 +116,7 @@ async function run() {
           .status(403)
           .send({ error: true, message: "forbidden access" });
       }
+
       const query = { email: email };
       const result = await cartCollection.find(query).toArray();
       res.send(result);
