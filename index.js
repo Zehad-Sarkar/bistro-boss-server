@@ -25,7 +25,7 @@ const verifyJWT = (req, res, next) => {
         .status(401)
         .send({ error: true, message: "unauthorized access" });
     }
-    console.log("decoded", decoded);
+
     req.decoded = decoded;
     next();
   });
@@ -65,8 +65,38 @@ async function run() {
       res.send({ token });
     });
 
+    //admin check and data protect
+    const verifyAdmin = async (req, res, next) => {
+      const email = req.decoded.email;
+      const query = { email: email };
+      const user = await usersCollection.findOne(query);
+      if (user?.role !== "admin") {
+        res.status(403).send({ error: true, message: "forbidden message" });
+      }
+      next();
+    };
+
+    //check admin api route
+    app.get("/user/admin/:email", verifyJWT, async (req, res) => {
+      try {
+        const email = req.params.email;
+        if (req.decoded.email !== email) {
+          res.send({ admin: false });
+        }
+        const query = { email: email };
+        const user = await usersCollection.findOne(query);
+        const result = {
+          admin: user?.role === "admin",
+        };
+        // console.log("result", result);
+        res.send(result);
+      } catch (err) {
+        console.log(err);
+      }
+    });
+
     //get user related api get user from database
-    app.get("/users", async (req, res) => {
+    app.get("/users", verifyJWT, verifyAdmin, async (req, res) => {
       const result = await usersCollection.find().toArray();
       res.send(result);
     });
@@ -89,7 +119,7 @@ async function run() {
       const filter = { _id: new ObjectId(id) };
       const updateDoc = {
         $set: {
-          role: "Admin",
+          role: "admin",
         },
       };
       const result = await usersCollection.updateOne(filter, updateDoc);
